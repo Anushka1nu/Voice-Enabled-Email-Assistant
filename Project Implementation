@@ -1,0 +1,219 @@
+#CODE
+
+import smtplib  # Importing library for sending emails
+import speech_recognition as sr  # Importing library for speech recognition
+import pyttsx3  # Importing library for text-to-speech conversion
+from email.message import EmailMessage  # Importing class for email message
+from textblob import TextBlob  # Importing library for text analysis
+from translate import Translator  # Importing library for translation
+from langdetect import detect  # Importing library for language detection
+
+
+# Initialize speech recognizer and text-to-speech engine
+listener = sr.Recognizer()  # Initializing speech recognizer
+tts_engine = pyttsx3.init()  # Initializing text-to-speech engine
+
+
+# Dictionary to store email addresses corresponding to contact names
+contacts = {"jojo": "anushka0225gupta@gmail.com"}  # Placeholder for contacts
+
+
+# Function to speak text
+def speak(text):
+    tts_engine.say(text)  # Speaking the provided text
+    tts_engine.runAndWait()  # Ensuring the text is spoken before proceeding
+
+
+# Function to listen for user input
+def listen():
+    with sr.Microphone() as source:  # Using microphone as audio source
+        print("Listening...")  # Printing indication that program is listening
+        listener.adjust_for_ambient_noise(source)  # Adjusting for ambient noise
+        audio = listener.listen(source)  # Listening for audio input
+        try:
+            print("Recognizing...")  # Printing indication that speech recognition is in progress
+            user_input = listener.recognize_google(audio).lower()  # Recognizing speech and converting to lowercase
+            print(user_input)  # Printing the recognized speech
+            return user_input  # Returning the recognized speech
+        except Exception as e:
+            print(e)  # Printing any errors that occur during speech recognition
+            return ""  # Returning empty string if speech recognition fails
+
+
+# Function to send email
+def send_email(receiver, subject, body):
+    try:
+        server = smtplib.SMTP("smtp.gmail.com", 587)  # Initializing SMTP server for Gmail
+        server.starttls()  # Starting TLS connection
+        server.login("YOUR_GMAIL","YOUR_API_KEY")  # Logging in to Gmail account
+        email = EmailMessage()  # Creating an EmailMessage object
+        email["From"] = "YOUR_GMAIL"  # Setting sender email address
+        email["To"] = receiver  # Setting recipient email address
+        email["Subject"] = subject  # Setting email subject
+        email.set_content(body)  # Setting email body content
+        server.send_message(email)  # Sending the email message
+        server.quit()  # Quitting the SMTP server
+        print("Your email has been sent!")  # Printing confirmation message
+        return True  # Returning True to indicate successful email sending
+    except Exception as e:
+        print("Error:", e)  # Printing any errors that occur during email sending
+        return False  # Returning False to indicate email sending failure
+
+
+# Function to save email draft
+def save_draft(subject, body):
+    with open("email_draft.txt", "w") as file:  # Opening file for writing
+        file.write(f"Subject: {subject}\n\n{body}")  # Writing email subject and body to file
+    print("Email draft saved successfully!")  # Printing confirmation message
+
+
+# Function to attach file to email
+def attach_file(file_path):
+    try:
+        with open(file_path, "rb") as file:  # Opening file in binary read mode
+            file_data = file.read()  # Reading file data
+            file_name = file.name  # Getting file name
+        attachment = EmailMessage()  # Creating an EmailMessage object for attachment
+        attachment.add_attachment(file_data, maintype="application", subtype="octet-stream", filename=file_name)  # Adding file as attachment
+        return attachment  # Returning the attachment object
+    except Exception as e:
+        print("Error attaching file:", e)  # Printing any errors that occur during file attachment
+        return None  # Returning None if file attachment fails
+
+
+# Function to schedule email
+def schedule_email(receiver, subject, body, time):
+    # Placeholder for email scheduling functionality
+    print(f"Email scheduled for {time}:")  # Printing placeholder message
+    print(f"To: {receiver}\nSubject: {subject}\nBody: {body}")  # Printing email details
+
+
+# Function to translate text using translate library
+def translate_text(text, target_language):
+    detected_language = detect(text)  # Detecting language of the input text
+    translator = Translator(from_lang=detected_language, to_lang=target_language)  # Creating Translator object
+    translated_text = translator.translate(text)  # Translating text to target language
+    print(f"Translated text: {translated_text}")  # Printing translated text
+    return translated_text  # Returning translated text
+
+
+""""Here are a few examples:
+Japanese:
+Language name: "Japanese"
+Language code: "ja"
+    
+Chinese (Simplified):
+Language name: "Chinese (Simplified)"
+Language code: "zh-CN"
+    
+Russian:
+Language name: "Russian"
+Language code: "ru"
+
+Arabic:
+Language name: "Arabic"
+Language code: "ar"
+    
+Hindi:
+Language name: "Hindi"
+Language code: "hi" """
+
+
+
+# Function to perform sentiment analysis
+def analyze_sentiment(text):
+    blob = TextBlob(text)  # Creating TextBlob object for input text
+    sentiment = blob.sentiment.polarity  # Performing sentiment analysis
+    if sentiment > 0:  # Checking if sentiment is positive
+        return "positive"  # Returning "positive" for positive sentiment
+    elif sentiment < 0:  # Checking if sentiment is negative
+        return "negative"  # Returning "negative" for negative sentiment
+    else:  # Handling neutral sentiment
+        return "neutral"  # Returning "neutral" for neutral sentiment
+
+
+# Function to load email template
+def load_template(template_name):
+    # Placeholder for email template loading functionality
+    print(f"Loading email template: {template_name}")  # Printing placeholder message
+    # Code to load template
+    template_subject = "Template Subject"  # Placeholder for template subject
+    template_body = "Template Body"  # Placeholder for template body
+    return template_subject, template_body  # Returning template subject and body
+
+
+# Function to integrate with calendar events
+def integrate_with_calendar():
+    # Placeholder for calendar integration functionality
+    print("Integrating with calendar events:")  # Printing placeholder message
+    # Code to integrate with calendar
+    print("Integration with calendar events completed successfully!")  # Printing confirmation message
+
+
+# Main function
+def main():
+    speak("Welcome to the voice-enabled email sender.")  # Greeting the user
+    speak("To whom do you want to send this email?")  # Prompting user for recipient's name
+    recipient_name = listen()  # Listening for recipient's name
+    receiver_email = contacts.get(recipient_name, None)  # Getting recipient's email from contacts
+    
+    if receiver_email is None:  # Checking if recipient's email is found
+        speak("Sorry, I couldn't find the recipient in your contacts.")  # Informing user if recipient not found
+        
+        return  # Exiting function if recipient not found
+
+    speak("Please speak the subject for this email.")  # Prompting user for email subject
+    subject = listen()  # Listening for email subject
+    speak("Please speak the message of this email.")  # Prompting user for email body
+    body = listen()  # Listening for email body
+
+    # Offer options for additional functionalities
+    speak("Do you want to save this email as a draft, attach a file, schedule it for later, translate it, analyze sentiment, load an email template, or integrate with calendar events?")  # Offering choices for additional functionalities
+    choice = listen()  # Listening for user choice
+    
+    if "draft" in choice:  # Checking if user chose to save email as draft
+        save_draft(subject, body)  # Calling function to save email draft
+        
+    elif "attach" in choice:  # Checking if user chose to attach a file
+        speak("Please specify the file path:")  # Prompting user for file path
+        file_path = listen()  # Listening for file path
+        attachment = attach_file(file_path)  # Attaching file to email
+        
+        if attachment:  # Checking if attachment is successful
+            send_email_with_attachment(receiver_email, subject, body, attachment)  # Sending email with attachment
+            
+    elif "schedule" in choice:  # Checking if user chose to schedule email
+        speak("Please specify the time to schedule the email.")  # Prompting user for schedule time
+        time = listen()  # Listening for schedule time
+        schedule_email(receiver_email, subject, body, time)  # Scheduling email
+        
+    elif "translate" in choice:  # Checking if user chose to translate email
+        speak("Which language do you want to translate this email into?")  # Prompting user for target language
+        target_language = listen()  # Listening for target language
+        translated_body = translate_text(body, target_language)  # Translating email body
+        send_email(receiver_email, subject, translated_body)  # Sending translated email
+        
+    elif "analyze" in choice:  # Checking if user chose to analyze sentiment
+        sentiment = analyze_sentiment(body)  # Analyzing sentiment of email body
+        speak(f"The sentiment of the email is {sentiment}.")  # Speaking the sentiment analysis result
+        
+    elif "template" in choice:  # Checking if user chose to load email template
+        speak("Please specify the name of the email template to load.")  # Prompting user for template name
+        template_name = listen()  # Listening for template name
+        template_subject, template_body = load_template(template_name)  # Loading email template
+        send_email(receiver_email, template_subject, template_body)  # Sending email with loaded template
+        
+    elif "calendar" in choice:  # Checking if user chose to integrate with calendar events
+        integrate_with_calendar()  # Integrating with calendar events
+        
+    else:  # Handling the case where no additional functionalities are chosen
+        
+        if send_email(receiver_email, subject, body):  # Sending the email
+            speak("Your email has been sent successfully!")  # Speaking confirmation message
+            
+        else:  # Handling email sending failure
+            speak("Sorry, an error occurred while sending the email.")  # Speaking error message
+
+
+if __name__ == "__main__":
+    main()  # Calling the main function to start the program
